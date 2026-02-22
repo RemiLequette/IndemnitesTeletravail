@@ -32,6 +32,29 @@
       font-size: 1.4rem;
     }
 
+    .toolbar-button {
+      border: 1px solid #d1d5db;
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      align-self: end;
+    }
+
+    .toolbar-button.active {
+      background: #e5f0ff;
+      border-color: #93c5fd;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
     .controls {
       display: flex;
       gap: 12px;
@@ -67,97 +90,191 @@
       color: #374151;
     }
 
-    .days-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      border-top: 1px solid #e5e7eb;
+    .calendar-wrap {
+      overflow-x: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #fff;
     }
 
-    .days-list li {
+    .calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+      border: 1px solid #e5e7eb;
+      padding: 8px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .calendar-table th {
+      background: #f8fafc;
+      font-size: 0.85rem;
+    }
+
+    .week-label,
+    .week-total {
+      font-weight: 700;
+      background: #f9fafb;
+    }
+
+    .day-empty {
+      background: #ffffff;
+    }
+
+    .day-non-ouvre {
+      background: #f3f4f6;
+    }
+
+    .day-check {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
-      padding: 10px 4px;
-      border-bottom: 1px solid #f0f2f5;
+      gap: 4px;
     }
 
-    .tag {
-      margin-left: auto;
-      font-size: 0.8rem;
+    .day-number {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .day-type {
+      font-size: 0.72rem;
       color: #6b7280;
+    }
+
+    .primary-button {
+      border: 1px solid #1d4ed8;
+      background: #2563eb;
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 0.92rem;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <main class="container">
-    <h1>Jours travaillés (mois sélectionné)</h1>
+    <h1 id="pageTitle">Indemnités télétravail</h1>
 
     <div class="controls">
-      <div class="control">
-        <label for="nomUtilisateur">Nom de l'utilisateur</label>
-        <input
-          id="nomUtilisateur"
-          type="text"
-          placeholder="Ex. Rémi Lequette"
-          aria-label="Nom de l'utilisateur"
-        />
-      </div>
-
-      <div class="control">
-        <label for="mois">Mois</label>
-        <select id="mois" aria-label="Sélection du mois"></select>
-      </div>
-
-      <div class="control">
-        <label for="annee">Année</label>
-        <select id="annee" aria-label="Sélection de l'année"></select>
-      </div>
-
-      <div class="control">
-        <label for="forfaitJournalier">Forfait journalier (€)</label>
-        <input
-          id="forfaitJournalier"
-          type="number"
-          inputmode="decimal"
-          min="0"
-          step="0.01"
-          value="2.70"
-          aria-label="Forfait journalier"
-        />
-      </div>
-
-      <div class="control">
-        <label for="maxMensuel">Max mensuel (€)</label>
-        <input
-          id="maxMensuel"
-          type="number"
-          inputmode="decimal"
-          min="0"
-          step="0.01"
-          value="59.40"
-          aria-label="Maximum mensuel"
-        />
-      </div>
+      <button id="toggleParametresBtn" type="button" class="toolbar-button">Paramètres</button>
     </div>
 
-    <p id="utilisateurInfo" class="summary"></p>
+    <section id="tabPrincipal" class="tab-content active">
+      <div class="controls">
+        <div class="control">
+          <label for="beneficiaire">Bénéficiaire</label>
+          <input id="beneficiaire" type="text" placeholder="Ex. Rémi Lequette" aria-label="Bénéficiaire" />
+        </div>
 
-    <p id="resume" class="summary"></p>
+        <div class="control">
+          <label for="mois">Mois</label>
+          <select id="mois" aria-label="Sélection du mois"></select>
+        </div>
 
-    <ul id="jours" class="days-list"></ul>
+        <div class="control">
+          <label for="annee">Année</label>
+          <select id="annee" aria-label="Sélection de l'année"></select>
+        </div>
+
+        <button id="genererPdfBtn" type="button" class="primary-button">Générer le PDF</button>
+      </div>
+
+      <p id="resume" class="summary"></p>
+
+      <div class="calendar-wrap">
+        <div id="jours"></div>
+      </div>
+
+    </section>
+
+    <section id="tabParametres" class="tab-content">
+      <div class="controls">
+        <div class="control">
+          <label for="forfaitJournalier">Forfait journalier (€)</label>
+          <input
+            id="forfaitJournalier"
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="0.01"
+            value="2.70"
+            aria-label="Forfait journalier"
+          />
+        </div>
+
+        <div class="control">
+          <label for="maxMensuel">Max mensuel (€)</label>
+          <input
+            id="maxMensuel"
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="0.01"
+            value="59.40"
+            aria-label="Maximum mensuel"
+          />
+        </div>
+
+        <div class="control">
+          <label for="fonction">Fonction</label>
+          <input
+            id="fonction"
+            type="text"
+            value="Président (Mandataire social non rémunéré)"
+            aria-label="Fonction"
+          />
+        </div>
+
+        <div class="control">
+          <label for="societe">Nom de la société</label>
+          <input id="societe" type="text" placeholder="Ex. Ma Société SAS" aria-label="Nom de la société" />
+        </div>
+
+        <div class="control">
+          <label for="lieu">Lieu</label>
+          <input id="lieu" type="text" placeholder="Ex. Paris" aria-label="Lieu" />
+        </div>
+      </div>
+    </section>
+
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <script>
+    const toggleParametresBtn = document.getElementById('toggleParametresBtn');
+    const pageTitle = document.getElementById('pageTitle');
+    const tabPrincipal = document.getElementById('tabPrincipal');
+    const tabParametres = document.getElementById('tabParametres');
+
     const moisSelect = document.getElementById('mois');
     const anneeSelect = document.getElementById('annee');
-    const nomUtilisateurInput = document.getElementById('nomUtilisateur');
+    const beneficiaireInput = document.getElementById('beneficiaire');
     const forfaitJournalierInput = document.getElementById('forfaitJournalier');
     const maxMensuelInput = document.getElementById('maxMensuel');
-    const utilisateurInfo = document.getElementById('utilisateurInfo');
+    const fonctionInput = document.getElementById('fonction');
+    const societeInput = document.getElementById('societe');
+    const lieuInput = document.getElementById('lieu');
+
     const joursContainer = document.getElementById('jours');
     const resume = document.getElementById('resume');
-    const CLE_NOM_UTILISATEUR = 'indemnites_teletravail_nom_utilisateur';
+    const genererPdfBtn = document.getElementById('genererPdfBtn');
+
+    const CLES = {
+      beneficiaire: 'indemnites_teletravail_beneficiaire',
+      forfaitJournalier: 'indemnites_teletravail_forfait_journalier',
+      maxMensuel: 'indemnites_teletravail_max_mensuel',
+      fonction: 'indemnites_teletravail_fonction',
+      societe: 'indemnites_teletravail_societe',
+      lieu: 'indemnites_teletravail_lieu'
+    };
 
     const moisNoms = [
       'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -169,6 +286,14 @@
         weekday: 'long',
         day: '2-digit',
         month: 'long',
+        year: 'numeric'
+      }).format(date);
+    }
+
+    function formatDateCourte(date) {
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
         year: 'numeric'
       }).format(date);
     }
@@ -253,29 +378,31 @@
       }
     }
 
-    function nomUtilisateurCourant() {
-      return nomUtilisateurInput.value.trim();
+    function afficherOnglet(onglet) {
+      const principalActif = onglet === 'principal';
+      toggleParametresBtn.classList.toggle('active', !principalActif);
+      toggleParametresBtn.textContent = principalActif ? 'Paramètres' : 'Retour';
+      tabPrincipal.classList.toggle('active', principalActif);
+      tabParametres.classList.toggle('active', !principalActif);
     }
 
-    function afficherUtilisateur() {
-      const nom = nomUtilisateurCourant();
-      utilisateurInfo.textContent = nom
-        ? `Utilisateur : ${nom}`
-        : 'Utilisateur : non renseigné';
+    function valeurTexte(input) {
+      return input.value.trim();
     }
 
-    function sauvegarderNomUtilisateur() {
-      const nom = nomUtilisateurCourant();
-      localStorage.setItem(CLE_NOM_UTILISATEUR, nom);
-      afficherUtilisateur();
+    function beneficiaireCourant() {
+      return valeurTexte(beneficiaireInput);
     }
 
-    function initialiserNomUtilisateur() {
-      const nomSauvegarde = localStorage.getItem(CLE_NOM_UTILISATEUR);
-      if (nomSauvegarde) {
-        nomUtilisateurInput.value = nomSauvegarde;
+    function afficherBeneficiaire() {
+      const beneficiaire = beneficiaireCourant();
+      pageTitle.textContent = beneficiaire
+        ? `Indemnités télétravail - ${beneficiaire}`
+        : 'Indemnités télétravail';
+
+      if (!beneficiaire) {
+        beneficiaireInput.placeholder = 'Ex. Rémi Lequette';
       }
-      afficherUtilisateur();
     }
 
     function lireMontant(input, valeurParDefaut) {
@@ -298,17 +425,211 @@
       return joursContainer.querySelectorAll('input[type="checkbox"]:checked').length;
     }
 
-    function calculerMontantMensuel() {
+    function mettreAJourTotauxSemaines() {
+      const cellulesTotal = joursContainer.querySelectorAll('[data-week-total]');
+      cellulesTotal.forEach((cellule) => {
+        const semaine = cellule.dataset.weekTotal;
+        const total = joursContainer.querySelectorAll(`input[type="checkbox"][data-week="${semaine}"]:checked`).length;
+        cellule.textContent = String(total);
+      });
+    }
+
+    function calculerMontantCourant() {
       const nbJoursCoches = compterJoursCoches();
       const forfaitJournalier = lireMontant(forfaitJournalierInput, 2.7);
       const maxMensuel = lireMontant(maxMensuelInput, 59.4);
       const brut = nbJoursCoches * forfaitJournalier;
       const montant = Math.min(brut, maxMensuel);
+      return {
+        nbJoursCoches,
+        forfaitJournalier,
+        maxMensuel,
+        montant
+      };
+    }
+
+    function calculerMontantMensuel() {
+      const { nbJoursCoches, forfaitJournalier, maxMensuel, montant } = calculerMontantCourant();
 
       const mois = Number(moisSelect.value);
       const annee = Number(anneeSelect.value);
 
-      resume.textContent = `${nbJoursCoches} jour(s) coché(s) pour ${moisNoms[mois]} ${annee} · Montant mensuel : ${formaterEuro(montant)} (plafond ${formaterEuro(maxMensuel)}).`;
+      resume.textContent = `${nbJoursCoches} jour(s) à ${formaterEuro(forfaitJournalier)} pour ${moisNoms[mois]} ${annee} · Montant mensuel : ${formaterEuro(montant)} (plafond ${formaterEuro(maxMensuel)}).`;
+    }
+
+    function normaliserPourNomFichier(texte) {
+      const normalise = texte
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+      return normalise || 'BENEFICIAIRE';
+    }
+
+    function construireNomFichierPdf() {
+      const mois = Number(moisSelect.value) + 1;
+      const annee = Number(anneeSelect.value);
+      const beneficiaire = normaliserPourNomFichier(beneficiaireCourant());
+      return `NoteFrais_Teletravail_${annee}-${String(mois).padStart(2, '0')}_${beneficiaire}.pdf`;
+    }
+
+    function estJourCoche(annee, mois, jour) {
+      const cle = `${annee}-${String(mois + 1).padStart(2, '0')}-${String(jour).padStart(2, '0')}`;
+      const checkbox = document.getElementById(`jour-${cle}`);
+      return checkbox ? checkbox.checked : false;
+    }
+
+    function construireTableauSemaines(annee, mois, nbJours) {
+      const premierJour = new Date(annee, mois, 1);
+      const decalagePremierJour = (premierJour.getDay() + 6) % 7;
+      const semaines = [];
+
+      for (let jour = 1; jour <= nbJours; jour += 1) {
+        const position = decalagePremierJour + jour - 1;
+        const indexSemaine = Math.floor(position / 7);
+        const indexJourSemaine = position % 7;
+
+        if (!semaines[indexSemaine]) {
+          semaines[indexSemaine] = {
+            jours: ['', '', '', '', '', '', ''],
+            total: 0
+          };
+        }
+
+        const coche = estJourCoche(annee, mois, jour);
+        semaines[indexSemaine].jours[indexJourSemaine] = coche ? `${jour} ✓` : `${jour}`;
+        if (coche) {
+          semaines[indexSemaine].total += 1;
+        }
+      }
+
+      return semaines;
+    }
+
+    function genererLignesTableauPdf() {
+      const mois = Number(moisSelect.value);
+      const annee = Number(anneeSelect.value);
+      const nbJours = new Date(annee, mois + 1, 0).getDate();
+      const semaines = construireTableauSemaines(annee, mois, nbJours);
+
+      const lignes = semaines.map((semaine, index) => {
+        const jours = semaine.jours.map((valeur) => valeur || '');
+        return [`S${index + 1}`, ...jours, String(semaine.total)];
+      });
+
+      const totalMois = lignes.reduce((acc, ligne) => acc + Number(ligne[8] || 0), 0);
+      lignes.push(['TOTAL MOIS', '', '', '', '', '', '', '', String(totalMois)]);
+      return lignes;
+    }
+
+    function genererPdf() {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('La librairie PDF est indisponible. Vérifiez votre connexion Internet puis réessayez.');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+      const nomFichier = construireNomFichierPdf();
+      const mois = Number(moisSelect.value);
+      const annee = Number(anneeSelect.value);
+      const { nbJoursCoches, forfaitJournalier, maxMensuel, montant } = calculerMontantCourant();
+
+      const beneficiaire = beneficiaireCourant() || '[BÉNÉFICIAIRE]';
+      const societe = valeurTexte(societeInput) || '[NOM DE VOTRE SAS]';
+      const fonction = valeurTexte(fonctionInput) || '[FONCTION]';
+      const lieu = valeurTexte(lieuInput) || '[LIEU]';
+      const dateDuJour = formatDateCourte(new Date());
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.text('NOTE DE FRAIS : REMBOURSEMENT FORFAITAIRE TÉLÉTRAVAIL', 14, 16);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10.5);
+      let y = 24;
+      doc.text(`Société : ${societe}`, 14, y); y += 6;
+      doc.text(`Bénéficiaire : ${beneficiaire}`, 14, y); y += 6;
+      doc.text(`Fonction : ${fonction}`, 14, y); y += 6;
+      doc.text(`Période : Mois de ${moisNoms[mois]} ${annee}`, 14, y); y += 8;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('1. Relevé des jours de présence à domicile', 14, y); y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.text('Conformément aux nécessités de gestion de la société exercées depuis le domicile du mandataire.', 14, y); y += 3;
+
+      doc.autoTable({
+        startY: y + 2,
+        head: [['Semaine', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim', 'Total']],
+        body: genererLignesTableauPdf(),
+        styles: { font: 'helvetica', fontSize: 9, cellPadding: 2.2 },
+        headStyles: { fillColor: [243, 244, 246], textColor: [17, 24, 39] },
+        theme: 'grid'
+      });
+
+      y = doc.lastAutoTable.finalY + 10;
+      doc.setFont('helvetica', 'bold');
+      doc.text("2. Calcul de l'allocation forfaitaire", 14, y); y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.text("Base : Barème d'évaluation forfaitaire des frais de télétravail (admis par l'administration).", 14, y); y += 6;
+      doc.text(`Nombre de jours travaillés à domicile : ${nbJoursCoches} jours`, 14, y); y += 6;
+      doc.text(`Indemnité forfaitaire par jour : ${formaterEuro(forfaitJournalier)}`, 14, y); y += 6;
+      doc.setFont('helvetica', 'bold');
+      doc.text(`MONTANT TOTAL À REMBOURSER : ${formaterEuro(montant)} (Plafond ${formaterEuro(maxMensuel)})`, 14, y); y += 9;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('3. Certification', 14, y); y += 5;
+      doc.setFont('helvetica', 'normal');
+
+      const paragraphe = `Je certifie sur l'honneur l'exactitude des informations ci-dessus et que ces frais ont été engagés exclusivement pour les besoins de l'activité de la société ${societe}.`;
+      const lignesParagraphe = doc.splitTextToSize(paragraphe, 180);
+      doc.text(lignesParagraphe, 14, y);
+      y += lignesParagraphe.length * 5 + 4;
+
+      doc.text(`Fait à : ${lieu}`, 14, y); y += 6;
+      doc.text(`Le : ${dateDuJour}`, 14, y); y += 10;
+      doc.text('Signature du bénéficiaire :', 14, y); y += 7;
+      doc.text(beneficiaire, 14, y);
+
+      doc.save(nomFichier);
+    }
+
+    function chargerParametres() {
+      const beneficiaire = localStorage.getItem(CLES.beneficiaire);
+      if (beneficiaire !== null) {
+        beneficiaireInput.value = beneficiaire;
+      }
+
+      const forfaitJournalier = localStorage.getItem(CLES.forfaitJournalier);
+      if (forfaitJournalier !== null) {
+        forfaitJournalierInput.value = forfaitJournalier;
+      }
+
+      const maxMensuel = localStorage.getItem(CLES.maxMensuel);
+      if (maxMensuel !== null) {
+        maxMensuelInput.value = maxMensuel;
+      }
+
+      const fonction = localStorage.getItem(CLES.fonction);
+      if (fonction !== null) {
+        fonctionInput.value = fonction;
+      }
+
+      const societe = localStorage.getItem(CLES.societe);
+      if (societe !== null) {
+        societeInput.value = societe;
+      }
+
+      const lieu = localStorage.getItem(CLES.lieu);
+      if (lieu !== null) {
+        lieuInput.value = lieu;
+      }
+    }
+
+    function sauvegarderParametre(cle, valeur) {
+      localStorage.setItem(cle, valeur);
     }
 
     function afficherJours() {
@@ -316,46 +637,118 @@
       const annee = Number(anneeSelect.value);
       const nbJours = new Date(annee, mois + 1, 0).getDate();
       const feries = joursFeriesFrance(annee);
+      const joursNoms = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+      const premierJour = new Date(annee, mois, 1);
+      const decalagePremierJour = (premierJour.getDay() + 6) % 7;
 
       joursContainer.innerHTML = '';
-      for (let jour = 1; jour <= nbJours; jour += 1) {
-        const date = new Date(annee, mois, jour);
-        const cle = formatCle(date);
-        const weekend = estWeekend(date);
-        const ferie = feries.has(cle);
-        const cocheParDefaut = !weekend && !ferie;
+      const table = document.createElement('table');
+      table.className = 'calendar-table';
 
-        const li = document.createElement('li');
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `jour-${cle}`;
-        checkbox.checked = cocheParDefaut;
-        checkbox.addEventListener('change', calculerMontantMensuel);
+      const thSemaine = document.createElement('th');
+      thSemaine.textContent = 'Semaine';
+      headRow.appendChild(thSemaine);
 
-        const label = document.createElement('label');
-        label.htmlFor = checkbox.id;
-        label.textContent = formatDate(date);
+      joursNoms.forEach((nom) => {
+        const th = document.createElement('th');
+        th.textContent = nom;
+        headRow.appendChild(th);
+      });
 
-        li.appendChild(checkbox);
-        li.appendChild(label);
+      const thTotal = document.createElement('th');
+      thTotal.textContent = 'Total';
+      headRow.appendChild(thTotal);
 
-        if (weekend || ferie) {
-          const tag = document.createElement('span');
-          tag.className = 'tag';
-          if (weekend && ferie) {
-            tag.textContent = 'Week-end / Férié';
-          } else if (weekend) {
-            tag.textContent = 'Week-end';
-          } else {
-            tag.textContent = 'Férié';
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      let jour = 1;
+      let semaine = 1;
+
+      while (jour <= nbJours) {
+        const row = document.createElement('tr');
+
+        const celluleSemaine = document.createElement('td');
+        celluleSemaine.className = 'week-label';
+        celluleSemaine.textContent = `S${semaine}`;
+        row.appendChild(celluleSemaine);
+
+        for (let indexJourSemaine = 0; indexJourSemaine < 7; indexJourSemaine += 1) {
+          const cellule = document.createElement('td');
+
+          const caseAvantDebutMois = semaine === 1 && indexJourSemaine < decalagePremierJour;
+          if (caseAvantDebutMois || jour > nbJours) {
+            cellule.className = 'day-empty';
+            row.appendChild(cellule);
+            continue;
           }
-          li.appendChild(tag);
+
+          const date = new Date(annee, mois, jour);
+          const cle = formatCle(date);
+          const weekend = estWeekend(date);
+          const ferie = feries.has(cle);
+          const cocheParDefaut = !weekend && !ferie;
+
+          if (weekend || ferie) {
+            cellule.classList.add('day-non-ouvre');
+          }
+
+          const wrapper = document.createElement('div');
+          wrapper.className = 'day-check';
+
+          const numero = document.createElement('span');
+          numero.className = 'day-number';
+          numero.textContent = String(jour);
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.id = `jour-${cle}`;
+          checkbox.dataset.week = String(semaine);
+          checkbox.checked = cocheParDefaut;
+          checkbox.addEventListener('change', () => {
+            calculerMontantMensuel();
+            mettreAJourTotauxSemaines();
+          });
+
+          wrapper.appendChild(numero);
+          wrapper.appendChild(checkbox);
+
+          if (weekend || ferie) {
+            const typeJour = document.createElement('span');
+            typeJour.className = 'day-type';
+            if (weekend && ferie) {
+              typeJour.textContent = 'WE / FÉ';
+            } else if (weekend) {
+              typeJour.textContent = 'WE';
+            } else {
+              typeJour.textContent = 'FÉ';
+            }
+            wrapper.appendChild(typeJour);
+          }
+
+          cellule.appendChild(wrapper);
+          row.appendChild(cellule);
+          jour += 1;
         }
 
-        joursContainer.appendChild(li);
+        const celluleTotal = document.createElement('td');
+        celluleTotal.className = 'week-total';
+        celluleTotal.dataset.weekTotal = String(semaine);
+        celluleTotal.textContent = '0';
+        row.appendChild(celluleTotal);
+
+        tbody.appendChild(row);
+        semaine += 1;
       }
 
+      table.appendChild(tbody);
+      joursContainer.appendChild(table);
+
+      mettreAJourTotauxSemaines();
       calculerMontantMensuel();
     }
 
@@ -368,18 +761,76 @@
     }
 
     remplirSelecteurs();
-    initialiserNomUtilisateur();
+    chargerParametres();
     initialiserMoisPrecedent();
+    afficherOnglet('principal');
+    afficherBeneficiaire();
     afficherJours();
 
-    moisSelect.addEventListener('change', afficherJours);
-    anneeSelect.addEventListener('change', afficherJours);
-    forfaitJournalierInput.addEventListener('input', calculerMontantMensuel);
-    forfaitJournalierInput.addEventListener('change', calculerMontantMensuel);
-    maxMensuelInput.addEventListener('input', calculerMontantMensuel);
-    maxMensuelInput.addEventListener('change', calculerMontantMensuel);
-    nomUtilisateurInput.addEventListener('input', sauvegarderNomUtilisateur);
-    nomUtilisateurInput.addEventListener('change', sauvegarderNomUtilisateur);
+    toggleParametresBtn.addEventListener('click', () => {
+      if (tabPrincipal.classList.contains('active')) {
+        afficherOnglet('parametres');
+      } else {
+        afficherOnglet('principal');
+      }
+    });
+
+    moisSelect.addEventListener('change', () => {
+      afficherJours();
+    });
+    anneeSelect.addEventListener('change', () => {
+      afficherJours();
+    });
+
+    forfaitJournalierInput.addEventListener('input', () => {
+      sauvegarderParametre(CLES.forfaitJournalier, forfaitJournalierInput.value);
+      calculerMontantMensuel();
+    });
+    forfaitJournalierInput.addEventListener('change', () => {
+      sauvegarderParametre(CLES.forfaitJournalier, forfaitJournalierInput.value);
+      calculerMontantMensuel();
+    });
+
+    maxMensuelInput.addEventListener('input', () => {
+      sauvegarderParametre(CLES.maxMensuel, maxMensuelInput.value);
+      calculerMontantMensuel();
+    });
+    maxMensuelInput.addEventListener('change', () => {
+      sauvegarderParametre(CLES.maxMensuel, maxMensuelInput.value);
+      calculerMontantMensuel();
+    });
+
+    beneficiaireInput.addEventListener('input', () => {
+      sauvegarderParametre(CLES.beneficiaire, beneficiaireInput.value);
+      afficherBeneficiaire();
+    });
+    beneficiaireInput.addEventListener('change', () => {
+      sauvegarderParametre(CLES.beneficiaire, beneficiaireInput.value);
+      afficherBeneficiaire();
+    });
+
+    fonctionInput.addEventListener('input', () => {
+      sauvegarderParametre(CLES.fonction, fonctionInput.value);
+    });
+    fonctionInput.addEventListener('change', () => {
+      sauvegarderParametre(CLES.fonction, fonctionInput.value);
+    });
+
+    societeInput.addEventListener('input', () => {
+      sauvegarderParametre(CLES.societe, societeInput.value);
+    });
+    societeInput.addEventListener('change', () => {
+      sauvegarderParametre(CLES.societe, societeInput.value);
+    });
+
+    lieuInput.addEventListener('input', () => {
+      sauvegarderParametre(CLES.lieu, lieuInput.value);
+    });
+    lieuInput.addEventListener('change', () => {
+      sauvegarderParametre(CLES.lieu, lieuInput.value);
+    });
+
+    genererPdfBtn.addEventListener('click', genererPdf);
   </script>
 </body>
 </html>
