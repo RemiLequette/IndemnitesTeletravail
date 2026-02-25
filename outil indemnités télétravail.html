@@ -426,6 +426,13 @@
       }).format(montant);
     }
 
+    function formaterMontantFacture(montant) {
+      return new Intl.NumberFormat('fr-FR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(montant);
+    }
+
     function compterJoursCoches() {
       return joursContainer.querySelectorAll('input[type="checkbox"]:checked').length;
     }
@@ -584,8 +591,56 @@
       doc.setFont('helvetica', 'bold');
       doc.text(`MONTANT TOTAL À REMBOURSER : ${formaterEuro(montant)} (Plafond ${formaterEuro(maxMensuel)})`, 14, y); y += 9;
 
+      const montantHt = montant;
+      const tauxTva = 0;
+      const montantTva = 0;
+      const montantTtc = montantHt + montantTva;
+
       doc.setFont('helvetica', 'bold');
-      doc.text('3. Certification', 14, y); y += 5;
+      doc.text('3. Récapitulation comptable (format facture)', 14, y); y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.text('Document de remboursement - TVA non applicable (0%).', 14, y); y += 3;
+
+      doc.autoTable({
+        startY: y + 2,
+        head: [['Motif', 'Montant HT (€)', 'TVA (%)', 'Montant TVA (€)', 'Montant TTC (€)']],
+        body: [
+          [
+            `Indemnité forfaitaire télétravail - ${moisNoms[mois]} ${annee}`,
+            formaterMontantFacture(montantHt),
+            formaterMontantFacture(tauxTva),
+            formaterMontantFacture(montantTva),
+            formaterMontantFacture(montantTtc)
+          ],
+          [
+            'TOTAL',
+            formaterMontantFacture(montantHt),
+            formaterMontantFacture(tauxTva),
+            formaterMontantFacture(montantTva),
+            formaterMontantFacture(montantTtc)
+          ]
+        ],
+        styles: { font: 'helvetica', fontSize: 9, cellPadding: 2.2 },
+        headStyles: { fillColor: [243, 244, 246], textColor: [17, 24, 39] },
+        theme: 'grid',
+        columnStyles: {
+          0: { cellWidth: 84 },
+          1: { halign: 'right', cellWidth: 26 },
+          2: { halign: 'right', cellWidth: 18 },
+          3: { halign: 'right', cellWidth: 26 },
+          4: { halign: 'right', cellWidth: 26 }
+        },
+        didParseCell(data) {
+          if (data.row.index === 1) {
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      });
+
+      y = doc.lastAutoTable.finalY + 8;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('4. Certification', 14, y); y += 5;
       doc.setFont('helvetica', 'normal');
 
       const paragraphe = `Je certifie sur l'honneur l'exactitude des informations ci-dessus et que ces frais ont été engagés exclusivement pour les besoins de l'activité de la société ${societe}.`;
